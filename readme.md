@@ -16,7 +16,7 @@ YO! You can hydrate all your wallets AT ONCE! BUT WAIT. THERE'S MORE.
 - Get a report on all of your wallets to know your BNB balance, Faucet balance and more
 
 ## Installation
-- You need java install on your machine
+- You need java installed on your machine
 - Run ` ./gradlew build ` to build the project   
 
 ## Task Cheat Sheet
@@ -52,7 +52,7 @@ or
 [How to get your private keys from your ledger](https://www.youtube.com/watch?v=ZnSBer66W8s) (the only thing this guy missed is you might need to cycle through all the account numbers to get all your wallet addresses)
 
 ## The .env file
-This is our main configuration file. We will define variables in this file that the program will use to carry out your wishes. This project is set up such that you can edit this file but it will never get checked into github. Keep it that way. Check out [.example.env](.example.env), make a copy, remove "example" from the name of the file and fill out your details. The `.env` file has 6 types of environment variables that can be listed in no particular order (here and in the file):
+This is our main configuration file. We will define variables in this file that the program will use to carry out your wishes. This project is set up such that you can edit this file but it will never get checked into github. Keep it that way. Check out [.example.env](.example.env), make a copy, remove ".example" from the name of the file and fill out your details. The `.env` file has 6 types of environment variables that can be listed in no particular order (here and in the file):
 
 |  Type                           | Name               |    
 |---------------------------------|--------------------|   
@@ -122,7 +122,7 @@ When you are done I suggest you delete `CONVERT_TO_TOKENS` and your private keys
 
 ## Presented to you by... 
 ![](pic/BoredDripApeClub.png) <br><br>
-If you are thinking of joining drip, consider using our team wallet address: `0xb8251ae17B38A79B27e80eb68974Fdb766c89236`
+If you are thinking of joining drip, consider using our team wallet address as your buddy address: `0xb8251ae17B38A79B27e80eb68974Fdb766c89236`
 
 Also check out some projects that inspired me:
 - [Logicfool's](https://github.com/logicfool) [AutoDripBot](https://github.com/logicfool/AutoDripBot)

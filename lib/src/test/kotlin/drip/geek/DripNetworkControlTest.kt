@@ -66,7 +66,7 @@ class DripNetworkControlTest {
         every { RestClient.currentDripPrice() } returns DRIP_PRICE
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
-        every { displayManager.displayWalletReport(any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletReport(any(), any(), any(), any()) } returns Unit
         every { displayManager.displayWalletReportSummary(any()) } returns Unit
 
         testWallets.forEachIndexed { num, wallet ->
@@ -224,7 +224,7 @@ class DripNetworkControlTest {
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
         every { displayManager.startHydration(any()) } returns Unit
-        every { displayManager.displayWalletStats(any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletStats(any(), any(), any(), any()) } returns Unit
         every { displayManager.displayHydrationInfo(any(), any(), any(), any()) } returns Unit
         every { displayManager.displaySummary(any()) } returns Unit
 

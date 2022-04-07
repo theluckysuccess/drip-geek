@@ -78,7 +78,7 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
             val faucet = Faucet.build(it, web3Client)
             val walletStats = faucet.walletStats(dripPrice, it.name)
             val minAvailableBalanceToHydrate = minAvailableBalanceToHydrateByDepositAmount(walletStats.depositBalance)
-            displayManager.displayWalletReport(PROCESS_NAME, walletStats, minAvailableBalanceToHydrate)
+            displayManager.displayWalletReport(PROCESS_NAME, walletStats, minAvailableBalanceToHydrate, MIN_BNB_BALANCE)
         }
         displayManager.displayWalletReportSummary(PROCESS_NAME)
         web3Client.close()
@@ -151,7 +151,7 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
             val faucet = Faucet.build(it, web3Client)
             val walletStats = faucet.walletStats(dripPrice, it.name)
             val minAvailableBalanceToHydrate = minAvailableBalanceToHydrateByDepositAmount(walletStats.depositBalance)
-            displayManager.displayWalletStats(PROCESS_NAME, walletStats, minAvailableBalanceToHydrate)
+            displayManager.displayWalletStats(PROCESS_NAME, walletStats, minAvailableBalanceToHydrate, MIN_BNB_BALANCE)
             when (hydrationStyle.canHydrate(walletStats.availableBalance, minAvailableBalanceToHydrate)) {
                 true -> when (val result = faucet.hydrate()) { // YAY!
                     is TransactionResponse.Error ->
