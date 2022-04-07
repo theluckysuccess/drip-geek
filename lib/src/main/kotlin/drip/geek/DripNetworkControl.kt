@@ -41,7 +41,7 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
         mainWalletFaucet: Faucet,
         balanceOfMainBnbWallet: BigDecimal,
         lowerFaucetToFaucetBNBBalance: Pair<Faucet, BigDecimal>?,
-        walletsToFund: List<Faucet>,
+        walletsToFund: List<Pair<Faucet, BigDecimal>>,
         totalToFund: BigDecimal
     ) = when {
         walletsToFund.isEmpty() -> {
@@ -52,11 +52,11 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
         }
 
         balanceOfMainBnbWallet > totalToFund -> walletsToFund
-            .filter { it.address.value != mainWalletFaucet.address.value } // The main wallet may not send to itself
-            .forEach {
-                logger.info { "process=$PROCESS_NAME | Starting move of $amountToFund BNB from ${mainWalletFaucet.name} to ${it.name} [${it.address}]" }
-                mainWalletFaucet.sendBNBFunds(to = it.address, amount = amountToFund)
-                logger.info { "process=$PROCESS_NAME | Successfully moved $amountToFund BNB from ${mainWalletFaucet.name} to ${it.name} [${it.address}]" }
+            .filter { it.first.address.value != mainWalletFaucet.address.value } // The main wallet may not send to itself
+            .forEach { (faucet, bnbBalance) ->
+                logger.info { "process=$PROCESS_NAME | Starting move of $amountToFund BNB from ${mainWalletFaucet.name} which currently has $bnbBalance BNB to ${faucet.name} [${faucet.address}]" }
+                mainWalletFaucet.sendBNBFunds(to = faucet.address, amount = amountToFund)
+                logger.info { "process=$PROCESS_NAME | Successfully moved $amountToFund BNB from ${mainWalletFaucet.name} to ${faucet.name} [${faucet.address}]" }
             }
             .also { logger.info { "process=$PROCESS_NAME | Completed moved of $amountToFund BNB to all fundable wallets" } }
 
@@ -113,7 +113,7 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
             mainWalletFaucet = mainWalletFaucet,
             balanceOfMainBnbWallet = balanceOfMainBnbWallet,
             lowerFaucetToFaucetBNBBalance = fundableWalletsSorted.firstOrNull(),
-            walletsToFund = fundableWalletsSorted.map { it.first },
+            walletsToFund = fundableWalletsSorted,
             totalToFund = sum
         )
 
@@ -134,7 +134,7 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
             mainWalletFaucet = mainWalletFaucet,
             balanceOfMainBnbWallet = balanceOfMainBnbWallet,
             lowerFaucetToFaucetBNBBalance = fundableWalletsSorted.firstOrNull(),
-            walletsToFund = belowMinBalanceWallets.map { it.first },
+            walletsToFund = belowMinBalanceWallets,
             totalToFund = sumOfLowBalanceWallets
         )
         web3Client.close()
