@@ -8,5 +8,6 @@ data class DripWalletStats(
     val depositBalance: BigDecimal,
     val depositBalanceValue: BigDecimal,
     val availableBalance: BigDecimal,
-    val claimedBalance: BigDecimal
+    val claimedBalance: BigDecimal,
+    val bnbBalanceHealth: BNBBalanceHealth,
 )

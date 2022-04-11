@@ -20,7 +20,7 @@ import org.web3j.utils.Convert
 
 internal class Faucet(
     private val dripWallet: DripWallet,
-    private val web3Client: Web3Client,
+    web3Client: Web3Client,
 ) {
     private val web3j: Web3j = web3Client.web3j()
     private val contract: FaucetV4 = FaucetV4.load(
@@ -42,7 +42,7 @@ internal class Faucet(
         return depositAmount.toValue() to claimAmount.toValue()
     }
 
-    fun walletStats(dripPrice: BigDecimal, name: String): DripWalletStats {
+    fun walletStats(dripPrice: BigDecimal, name: String, minBnbBalance: BigDecimal): DripWalletStats {
         val walletBNBValue = bnbBalance()
         val availableBalance = availableBalance()
         val (depositAmount, claimedAmount) = dripInfo()
@@ -53,7 +53,8 @@ internal class Faucet(
             availableBalance = availableBalance,
             depositBalance = depositAmount,
             claimedBalance = claimedAmount,
-            depositBalanceValue = depositValue
+            depositBalanceValue = depositValue,
+            bnbBalanceHealth = BNBBalanceHealth.bnbBalanceHealth(minBnbBalance, walletBNBValue)
         )
     }
 

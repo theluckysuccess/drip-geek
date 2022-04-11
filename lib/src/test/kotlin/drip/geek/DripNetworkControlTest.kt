@@ -66,7 +66,7 @@ class DripNetworkControlTest {
         every { RestClient.currentDripPrice() } returns DRIP_PRICE
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
-        every { displayManager.displayWalletReport(any(), any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletReport(any(), any(), any()) } returns Unit
         every { displayManager.displayWalletReportSummary(any()) } returns Unit
 
         testWallets.forEachIndexed { num, wallet ->
@@ -75,7 +75,7 @@ class DripNetworkControlTest {
             every { wallet.address } returns WALLET_ADDRESSES[num]
             every { wallet.fundable } returns true
             every { wallet.credentials } returns WALLET_CREDENTIALS
-            every { faucet.walletStats(any(), walletName) } returns DRIP_WALLET_STATS.copy(name = walletName)
+            every { faucet.walletStats(any(), walletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = walletName)
         }
 
         dripNetworkControl.walletsReport()
@@ -92,8 +92,13 @@ class DripNetworkControlTest {
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
         every { displayManager.displayLine() } returns Unit
-        every { displayManager.displayWalletBNBReport(any(), any(), any()) } returns Unit
-        every { displayManager.displayWalletBNBReportSummary(any()) } returns Unit
+        every { displayManager.displayWalletBNBReport(any(), any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletBNBReportSummary(any(), any(), any()) } returns Unit
+
+        // We want to test having a bnb balance of HEALTHY, LOW_BALANCE and NEEDS_REFILL
+        val walletBalance1 = 0.toBigDecimal()
+        val walletBalance2 = MIN_BNB_BALANCE + BigDecimal.ONE
+        val walletBalance3 = FUND_BNB_BALANCE
 
         testWallets.forEachIndexed { num, wallet ->
             val walletFaucet: Faucet = mockk()
@@ -102,8 +107,12 @@ class DripNetworkControlTest {
             every { wallet.address } returns WALLET_ADDRESSES[num]
             every { wallet.fundable } returns true
             every { wallet.credentials } returns WALLET_CREDENTIALS
-            every { walletFaucet.walletStats(any(), walletName) } returns DRIP_WALLET_STATS.copy(name = walletName)
-            every { walletFaucet.bnbBalance() } returns num.toBigDecimal()
+            every { walletFaucet.walletStats(any(), walletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = walletName)
+            every { walletFaucet.bnbBalance() } returns when (num) {
+                0 -> walletBalance1
+                1 -> walletBalance2
+                else -> walletBalance3
+            }
             every { walletFaucet.name } returns walletName
             every { Faucet.build(wallet, any()) } returns walletFaucet
         }
@@ -114,18 +123,16 @@ class DripNetworkControlTest {
         every { faucet.name } returns mainWalletName
         every { faucet.address } returns DripWallets.MAIN_BNB_WALLET.address
         every { faucet.bnbBalance() } returns MAIN_WALLET_BNB_BALANCE
-        every { faucet.walletStats(any(), mainWalletName) } returns DRIP_WALLET_STATS.copy(name = mainWalletName)
+        every { faucet.walletStats(any(), mainWalletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = mainWalletName)
         every { Faucet.build(DripWallets.MAIN_BNB_WALLET, any()) } returns faucet
 
         dripNetworkControl.walletsBNBReport()
 
-        // Corresponds to index value (num) of call to testWallets.forEachIndexed
-        val walletBalance1 = 0.toBigDecimal()
-        val walletBalance2 = 1.toBigDecimal()
-        val walletBalance3 = 2.toBigDecimal()
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 0", walletBalance1) }
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 1", walletBalance2) }
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 2", walletBalance3) }
+
+        verify { displayManager.displayWalletBNBReport(processName, "Wallet 0", walletBalance1, BNBBalanceHealth.NEEDS_REFILL) }
+        verify { displayManager.displayWalletBNBReport(processName, "Wallet 1", walletBalance2, BNBBalanceHealth.LOW_BALANCE) }
+        verify { displayManager.displayWalletBNBReport(processName, "Wallet 2", walletBalance3, BNBBalanceHealth.HEALTHY) }
+        verify { displayManager.displayWalletBNBReportSummary(processName, FUND_BNB_BALANCE, walletBalance1) }
         verify(exactly = 2) { Web3Client.init() }
         verify(exactly = 2) { web3j.shutdown() }
         verify(exactly = 2) { web3Client.close() }
@@ -148,7 +155,7 @@ class DripNetworkControlTest {
             every { walletFaucet.name } returns walletName
             every { walletFaucet.address } returns WALLET_ADDRESSES[num]
             every { walletFaucet.bnbBalance() } returns MAIN_WALLET_BNB_BALANCE
-            every { walletFaucet.walletStats(any(), walletName) } returns DRIP_WALLET_STATS.copy(name = walletName)
+            every { walletFaucet.walletStats(any(), walletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = walletName)
             every { Faucet.build(wallet, any()) } returns walletFaucet
         }
 
@@ -158,7 +165,7 @@ class DripNetworkControlTest {
         every { faucet.name } returns mainWalletName
         every { faucet.address } returns DripWallets.MAIN_BNB_WALLET.address
         every { faucet.bnbBalance() } returns MAIN_WALLET_BNB_BALANCE
-        every { faucet.walletStats(any(), mainWalletName) } returns DRIP_WALLET_STATS.copy(name = mainWalletName)
+        every { faucet.walletStats(any(), mainWalletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = mainWalletName)
         every { Faucet.build(DripWallets.MAIN_BNB_WALLET, any()) } returns faucet
         every { faucet.sendBNBFunds(to = any(), amount = bnbSendAmount) } returns transactionResponse
 
@@ -190,7 +197,7 @@ class DripNetworkControlTest {
             every { walletFaucet.name } returns walletName
             every { walletFaucet.address } returns WALLET_ADDRESSES[num]
             every { walletFaucet.bnbBalance() } returns BALANCE_BELOW_MIN_BALANCE
-            every { walletFaucet.walletStats(any(), walletName) } returns DRIP_WALLET_STATS.copy(name = walletName)
+            every { walletFaucet.walletStats(any(), walletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = walletName)
             every { Faucet.build(wallet, any()) } returns walletFaucet
         }
 
@@ -200,7 +207,7 @@ class DripNetworkControlTest {
         every { faucet.name } returns mainWalletName
         every { faucet.address } returns DripWallets.MAIN_BNB_WALLET.address
         every { faucet.bnbBalance() } returns MAIN_WALLET_BNB_BALANCE
-        every { faucet.walletStats(any(), mainWalletName) } returns DRIP_WALLET_STATS.copy(name = mainWalletName)
+        every { faucet.walletStats(any(), mainWalletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = mainWalletName)
         every { Faucet.build(DripWallets.MAIN_BNB_WALLET, any()) } returns faucet
         every { faucet.sendBNBFunds(to = any(), amount = bnbSendAmount) } returns transactionResponse
 
@@ -224,7 +231,7 @@ class DripNetworkControlTest {
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
         every { displayManager.startHydration(any()) } returns Unit
-        every { displayManager.displayWalletStats(any(), any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletStats(any(), any(), any()) } returns Unit
         every { displayManager.displayHydrationInfo(any(), any(), any(), any()) } returns Unit
         every { displayManager.displaySummary(any()) } returns Unit
 
@@ -239,7 +246,7 @@ class DripNetworkControlTest {
             every { walletFaucet.name } returns walletName
             every { walletFaucet.address } returns WALLET_ADDRESSES[num]
             every { walletFaucet.bnbBalance() } returns MAIN_WALLET_BNB_BALANCE
-            every { walletFaucet.walletStats(any(), walletName) } returns walletStats
+            every { walletFaucet.walletStats(any(), walletName, MIN_BNB_BALANCE) } returns walletStats
             every { walletFaucet.hydrate() } returns TransactionResponse.Success(transactionHash = txHash)
             every { walletFaucet.newDepositAmount() } returns walletStats.depositBalance + FUND_BNB_BALANCE
             every { Faucet.build(wallet, any()) } returns walletFaucet
@@ -267,6 +274,7 @@ class DripNetworkControlTest {
         private val MAIN_WALLET_BNB_BALANCE = BigDecimal.valueOf(10000)
         private val BALANCE_BELOW_MIN_BALANCE = BigDecimal.valueOf(1)
         private val FUND_BNB_BALANCE = BigDecimal.valueOf(10)
+        private val MIN_BNB_BALANCE = BigDecimal.valueOf(5)
         private val WALLET_ADDRESS_1 = Address("0xc0ffee254749296a45a3885639AC7E10F9d54977")
         private val WALLET_ADDRESS_2 = Address("0xc0ffee254749296a45a3885639AC7E10F9d54978")
         private val WALLET_ADDRESS_3 = Address("0xc0ffee254749296a45a3885639AC7E10F9d54979")
@@ -281,6 +289,7 @@ class DripNetworkControlTest {
             BigDecimal.TEN,
             BigDecimal.TEN,
             BigDecimal.TEN,
+            BNBBalanceHealth.HEALTHY
         )
     }
 }

@@ -13,6 +13,9 @@ class DisplayManager(
     var totalDripValue: BigDecimal = BigDecimal.ZERO
     var totalBNB: BigDecimal = BigDecimal.ZERO
     var totalBNBValue: BigDecimal = BigDecimal.ZERO
+    var totalHealthyBNBBalanceWallets: BigDecimal = BigDecimal.ZERO
+    var totalLowBNBBalanceWallets: BigDecimal = BigDecimal.ZERO
+    var totalNeedRefillBNBBalanceWallets: BigDecimal = BigDecimal.ZERO
     private var totalDripCompounded: BigDecimal = BigDecimal.ZERO
     private var totalDripCompoundedValue: BigDecimal = BigDecimal.ZERO
 
@@ -25,20 +28,12 @@ class DisplayManager(
     fun displayWalletStats(
         processName: String,
         dripWalletStats: DripWalletStats,
-        balanceNeededToHydrate: BigDecimal,
-        minBnbBalance: BigDecimal,
+        balanceNeededToHydrate: BigDecimal
     ) {
         logger.info { "============================" }
         logger.info { "process=$processName | Wallet Name:             ${dripWalletStats.name}" }
         logger.info { "process=$processName | BNB balance:             ${dripWalletStats.bnbBalance}" }
-        logger.info {
-            "process=$processName | BNB balance health:      ${
-                bnbBalanceHealth(
-                    minBnbBalance,
-                    dripWalletStats.bnbBalance
-                )
-            }"
-        }
+        logger.info { "process=$processName | BNB balance health:      ${dripWalletStats.bnbBalanceHealth}" }
         logger.info { "process=$processName | Deposit Amount:          ${dripWalletStats.depositBalance}" }
         logger.info { "process=$processName | Deposit Value:           $${dripWalletStats.depositBalanceValue.toScale()}" }
         logger.info { "process=$processName | Claimable amount:        ${dripWalletStats.availableBalance}" }
@@ -89,10 +84,9 @@ class DisplayManager(
     fun displayWalletReport(
         processName: String,
         walletStats: DripWalletStats,
-        minAvailableBalanceToHydrate: BigDecimal,
-        minBnbBalance: BigDecimal
+        minAvailableBalanceToHydrate: BigDecimal
     ) {
-        displayWalletStats(processName, walletStats, minAvailableBalanceToHydrate, minBnbBalance)
+        displayWalletStats(processName, walletStats, minAvailableBalanceToHydrate)
         totalDrip += walletStats.depositBalance
         totalDripValue += walletStats.depositBalanceValue
     }
@@ -108,29 +102,47 @@ class DisplayManager(
     fun displayWalletBNBReport(
         processName: String,
         walletName: String,
-        walletBnbBalance: BigDecimal
+        walletBnbBalance: BigDecimal,
+        bnbBalanceHealth: BNBBalanceHealth,
     ) {
-        logger.info { "process=$processName | Wallet Name: $walletName" }
-        logger.info { "process=$processName | BNB balance: $walletBnbBalance" }
+        logger.info { "process=$processName | Wallet Name:        $walletName" }
+        logger.info { "process=$processName | BNB balance:        $walletBnbBalance" }
+        logger.info { "process=$processName | BNB balance health: $bnbBalanceHealth" }
         totalBNB += walletBnbBalance
         totalBNBValue += walletBnbBalance.multiply(bnbPrice)
+        when (bnbBalanceHealth) {
+            BNBBalanceHealth.HEALTHY -> totalHealthyBNBBalanceWallets++
+            BNBBalanceHealth.LOW_BALANCE -> totalLowBNBBalanceWallets++
+            BNBBalanceHealth.NEEDS_REFILL -> totalNeedRefillBNBBalanceWallets++
+        }
+        displayLine()
     }
 
-    fun displayWalletBNBReportSummary(processName: String) {
-        displayLine()
-        logger.info { "process=$processName | Total BNB Amount: $totalBNB" }
-        logger.info { "process=$processName | Total BNB Value:  $${totalBNBValue.toScale()}" }
+    fun displayWalletBNBReportSummary(processName: String, fundBNBBalance: BigDecimal, bnbBalance: BigDecimal) {
+        logger.info { "process=$processName | Total BNB amount in wallets:              $totalBNB" }
+        logger.info { "process=$processName | Total BNB value in wallets:               $${totalBNBValue.toScale()}" }
+        logger.info { "process=$processName | Total BNB balance wallets [Healthy]:      $totalHealthyBNBBalanceWallets" }
+        logger.info { "process=$processName | Total BNB balance wallets [Low Balance]:  $totalLowBNBBalanceWallets" }
+        logger.info { "process=$processName | Total BNB balance wallets [Need Refill]:  $totalNeedRefillBNBBalanceWallets" }
+        logger.info { "process=$processName | Current BNB fund amount:                  $fundBNBBalance" }
+        logger.info { "process=$processName | Cost to fund each wallet with BNB:        $${fundBNBBalance.multiply(bnbPrice).toScale()}" }
+        logger.info { "process=$processName | BNB balance of main wallet:               $bnbBalance" }
+        logger.info { "process=$processName | BNB balance value of main wallet:         $${
+                bnbBalance.multiply(bnbPrice).toScale()
+            }"
+        }
+        if (totalNeedRefillBNBBalanceWallets != BigDecimal.ZERO) {
+            logger.info {
+                "process=$processName | Total To Fund Wallets Needing BNB Refill: $${
+                    totalNeedRefillBNBBalanceWallets.multiply(bnbPrice).multiply(fundBNBBalance).toScale()
+                }"
+            }
+        }
         displayLine()
     }
 
     companion object : KLogging() {
-        private val LOW_BNB_BALANCE_RATIO = BigDecimal(".60")
         fun BigDecimal.toScale(): BigDecimal = this.setScale(2, RoundingMode.HALF_DOWN)
         fun build(dripPrice: BigDecimal, bnbPrice: BigDecimal): DisplayManager = DisplayManager(dripPrice, bnbPrice)
-        fun bnbBalanceHealth(minBnbBalance: BigDecimal, walletBnbBalance: BigDecimal) = when {
-            minBnbBalance == BigDecimal.ZERO || walletBnbBalance == BigDecimal.ZERO -> "NEEDS BNB REFILL"
-            minBnbBalance / walletBnbBalance >= LOW_BNB_BALANCE_RATIO -> "LOW BALANCE"
-            else -> "HEALTHY"
-        }
     }
 }

@@ -92,7 +92,7 @@ The expected name of the environment variable secret key of the program is `SECR
 Take the generated secret key and set it in the `.env` file like this `SECRET_KEY=<generated key>`. Also think about clearing your command line after. 
 
 #### Min BNB Balance
-The expected name of the environment variable that is the bnb balance that triggers a money reload to is `MIN_BNB_BALANCE`. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task
+The expected name of the environment variable that is the bnb balance that triggers a money reload to is `MIN_BNB_BALANCE`. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task. Setting this value to zero will cause all wallet to be funded by the Find and Fund Low Balances task.
 
 #### Fund Balance
 The expected name of the environment variable that is the amount of bnb to automatically send to wallets is `FUND_BNB_BALANCE`. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task
@@ -115,6 +115,9 @@ Then take each and add them to your wallet name environment variable. So if your
 But in reality this will be a much longer string. 
 
 When you are done I suggest you delete `CONVERT_TO_TOKENS` and your private keys from your `.env` file
+
+## Known Issues
+- `502 Bad Gateway` when trying to run the tool. Happens while the program is trying to connect to `https://api.drip.community/prices`. Its transient, just run the program again.
 
 ## TODO
 - I forgot to add claiming lol :facepalm
