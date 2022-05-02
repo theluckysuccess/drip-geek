@@ -66,7 +66,7 @@ class DripNetworkControlTest {
         every { RestClient.currentDripPrice() } returns DRIP_PRICE
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
-        every { displayManager.displayWalletReport(any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletReport(any(), any(), any(), any(), any()) } returns Unit
         every { displayManager.displayWalletReportSummary(any()) } returns Unit
 
         testWallets.forEachIndexed { num, wallet ->
@@ -92,7 +92,7 @@ class DripNetworkControlTest {
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
         every { displayManager.displayLine() } returns Unit
-        every { displayManager.displayWalletBNBReport(any(), any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletBNBReport(any(), any(), any(), any(), any(), any()) } returns Unit
         every { displayManager.displayWalletBNBReportSummary(any(), any(), any()) } returns Unit
 
         // We want to test having a bnb balance of HEALTHY, LOW_BALANCE and NEEDS_REFILL
@@ -129,9 +129,9 @@ class DripNetworkControlTest {
         dripNetworkControl.walletsBNBReport()
 
 
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 0", walletBalance1, BNBBalanceHealth.NEEDS_REFILL) }
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 1", walletBalance2, BNBBalanceHealth.LOW_BALANCE) }
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 2", walletBalance3, BNBBalanceHealth.HEALTHY) }
+        verify { displayManager.displayWalletBNBReport(processName, "Wallet 0", walletBalance1, BNBBalanceHealth.NEEDS_REFILL, 1, 3) }
+        verify { displayManager.displayWalletBNBReport(processName, "Wallet 1", walletBalance2, BNBBalanceHealth.LOW_BALANCE, 2, 3) }
+        verify { displayManager.displayWalletBNBReport(processName, "Wallet 2", walletBalance3, BNBBalanceHealth.HEALTHY, 3, 3) }
         verify { displayManager.displayWalletBNBReportSummary(processName, FUND_BNB_BALANCE, walletBalance1) }
         verify(exactly = 2) { Web3Client.init() }
         verify(exactly = 2) { web3j.shutdown() }
@@ -231,7 +231,7 @@ class DripNetworkControlTest {
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
         every { displayManager.startHydration(any()) } returns Unit
-        every { displayManager.displayWalletStats(any(), any(), any()) } returns Unit
+        every { displayManager.displayWalletStats(any(), any(), any(), any(), any()) } returns Unit
         every { displayManager.displayHydrationInfo(any(), any(), any(), any()) } returns Unit
         every { displayManager.displaySummary(any()) } returns Unit
 

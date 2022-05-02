@@ -55,15 +55,20 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
             var fundedWallets = BigDecimal.ZERO
             walletsToFund
                 .filter { it.first.address.value != mainWalletFaucet.address.value } // The main wallet may not send to itself
+                .also { logger.info { "process=$PROCESS_NAME | Found [${it.size}] wallet(s) to fund" } }
                 .forEach { (faucet, bnbBalance) ->
-                    logger.info { "process=$PROCESS_NAME | Starting move of $amountToFund BNB from ${mainWalletFaucet.name} which currently has $bnbBalance BNB to ${faucet.name} [${faucet.address}]" }
+                    logger.info { "process=$PROCESS_NAME | Starting move of $amountToFund BNB from ${mainWalletFaucet.name} to ${faucet.name} [${faucet.address}]" }
+                    logger.info { "process=$PROCESS_NAME | ${faucet.name} [${faucet.address}] currently has $bnbBalance BNB" }
+                    logger.info { "process=$PROCESS_NAME | ${mainWalletFaucet.name} [${mainWalletFaucet.address}] currently has ${mainWalletFaucet.bnbBalance()} BNB" }
                     mainWalletFaucet.sendBNBFunds(to = faucet.address, amount = amountToFund)
-                    logger.info { "process=$PROCESS_NAME | Successfully moved $amountToFund BNB from ${mainWalletFaucet.name} to ${faucet.name} [${faucet.address}]" }
+                    logger.info { "process=$PROCESS_NAME | Successfully moved $amountToFund BNB from ${mainWalletFaucet.name} to ${faucet.name}" }
                     fundedWallets++
                 }
                 .also {
-                    val totalFundedValue = if(fundedWallets == BigDecimal.ZERO) BigDecimal.ZERO else amountToFund.multiply(fundedWallets).toScale()
-                    logger.info { "process=$PROCESS_NAME | Completed moved of $amountToFund BNB each ($$totalFundedValue in total) to all ($fundedWallets) fundable wallets" }
+                    val totalFundedValue =
+                        if (fundedWallets == BigDecimal.ZERO) BigDecimal.ZERO else amountToFund.multiply(fundedWallets)
+                            .toScale()
+                    logger.info { "process=$PROCESS_NAME | Completed moved of $amountToFund BNB each ($totalFundedValue BNB in total) to all ($fundedWallets) fundable wallets" }
                 }
         }
 
@@ -81,11 +86,18 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
 
         logger.info { "process=$PROCESS_NAME | Current price of drip is: $$dripPrice" }
         val web3Client = Web3Client.init()
-        wallets.sortedBy { it.name }.forEach {
-            val faucet = Faucet.build(it, web3Client)
-            val walletStats = faucet.walletStats(dripPrice, it.name, MIN_BNB_BALANCE)
+        val total = wallets.size
+        wallets.sortedBy { it.name }.forEachIndexed { index, wallet ->
+            val faucet = Faucet.build(wallet, web3Client)
+            val walletStats = faucet.walletStats(dripPrice, wallet.name, MIN_BNB_BALANCE)
             val minAvailableBalanceToHydrate = minAvailableBalanceToHydrateByDepositAmount(walletStats.depositBalance)
-            displayManager.displayWalletReport(PROCESS_NAME, walletStats, minAvailableBalanceToHydrate)
+            displayManager.displayWalletReport(
+                processName = PROCESS_NAME,
+                walletStats = walletStats,
+                minAvailableBalanceToHydrate = minAvailableBalanceToHydrate,
+                count = index + 1,
+                total = total
+            )
         }
         displayManager.displayWalletReportSummary(PROCESS_NAME)
         web3Client.close()
@@ -103,19 +115,24 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
         val mainWalletName = DripWallets.MAIN_BNB_WALLET.name
         var mainWalletBNBBalance: BigDecimal = BigDecimal.ZERO
         displayManager.displayLine()
-        getFaucetWalletToBNBBalanceListSorted().forEach { (faucet, bnbBalance) ->
+        val result = getFaucetWalletToBNBBalanceListSorted()
+        val total = result.size
+        result.forEachIndexed { index, (faucet, bnbBalance) ->
             displayManager.displayWalletBNBReport(
-                PROCESS_NAME,
-                faucet.name,
-                bnbBalance,
-                BNBBalanceHealth.bnbBalanceHealth(MIN_BNB_BALANCE, bnbBalance)
+                processName = PROCESS_NAME,
+                walletName = faucet.name,
+                walletBnbBalance = bnbBalance,
+                bnbBalanceHealth = BNBBalanceHealth.bnbBalanceHealth(MIN_BNB_BALANCE, bnbBalance),
+                count = index + 1,
+                total = total
             )
-            if(faucet.name == mainWalletName) {
+            if (faucet.name == mainWalletName) {
                 mainWalletBNBBalance = bnbBalance
             }
         }
         displayManager.displayWalletBNBReportSummary(PROCESS_NAME, FUND_BNB_BALANCE, mainWalletBNBBalance)
         web3Client.close()
+
     }
 
     fun sendBNBToWallets(amount: BigDecimal) {
@@ -163,12 +180,18 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
         val displayManager = DisplayManager.build(dripPrice, bnbPrice)
         displayManager.startHydration(PROCESS_NAME)
         val web3Client = Web3Client.init()
-
-        wallets.sortedBy { it.name }.forEach {
-            val faucet = Faucet.build(it, web3Client)
-            val walletStats = faucet.walletStats(dripPrice, it.name, MIN_BNB_BALANCE)
+        val total = wallets.size
+        wallets.sortedBy { it.name }.forEachIndexed { index, wallet ->
+            val faucet = Faucet.build(wallet, web3Client)
+            val walletStats = faucet.walletStats(dripPrice, wallet.name, MIN_BNB_BALANCE)
             val minAvailableBalanceToHydrate = minAvailableBalanceToHydrateByDepositAmount(walletStats.depositBalance)
-            displayManager.displayWalletStats(PROCESS_NAME, walletStats, minAvailableBalanceToHydrate)
+            displayManager.displayWalletStats(
+                processName = PROCESS_NAME,
+                dripWalletStats = walletStats,
+                balanceNeededToHydrate = minAvailableBalanceToHydrate,
+                count = index + 1,
+                total = total
+            )
             when (hydrationStyle.canHydrate(walletStats.availableBalance, minAvailableBalanceToHydrate)) {
                 true -> when (val result = faucet.hydrate()) { // YAY!
                     is TransactionResponse.Error ->

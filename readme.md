@@ -127,6 +127,9 @@ When you are done I suggest you delete `CONVERT_TO_TOKENS` and your private keys
 ![](pic/BoredDripApeClub.png) <br><br>
 If you are thinking of joining drip, consider using our team wallet address as your buddy address: `0xb8251ae17B38A79B27e80eb68974Fdb766c89236`
 
+## Consulting
+If you'd like something special I'm happy to whip it up for a reasonable fee. Open an issue. 
+
 Also check out some projects that inspired me:
 - [Logicfool's](https://github.com/logicfool) [AutoDripBot](https://github.com/logicfool/AutoDripBot)
 - [Ymagoon's](https://github.com/ymagoon) [Drip-Autohydrator](https://github.com/ymagoon/web3/tree/main/drip-autohydrater)
