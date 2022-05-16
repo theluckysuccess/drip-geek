@@ -1,5 +1,6 @@
 package drip.geek
 
+import drip.geek.DisplayManager.Companion.toScale
 import java.math.BigDecimal
 
 data class DripWalletStats(
@@ -11,3 +12,6 @@ data class DripWalletStats(
     val claimedBalance: BigDecimal,
     val bnbBalanceHealth: BNBBalanceHealth,
 )
+
+fun DripWalletStats.claimableAsPercent(): BigDecimal =
+    ((this.availableBalance / this.depositBalance) * BigDecimal.valueOf(100)).toScale()

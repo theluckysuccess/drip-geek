@@ -6,6 +6,9 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import io.mockk.verify
 import java.math.BigDecimal
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -48,12 +51,12 @@ class DripNetworkControlTest {
         every { testWallets[2].address } returns WALLET_ADDRESSES[2]
         // Make the first wallet the main wallet
         every { DripWallets.MAIN_BNB_WALLET } returns testWallets[0]
-        dripNetworkControl = DripNetworkControl(testWallets)
+        dripNetworkControl = DripNetworkControl(testWallets, CLOCK)
 
         every { web3j.shutdown() } returns Unit
         every { httpService.close() } returns Unit
         every { Web3Client.init() } returns web3Client
-        every { DisplayManager.build(any(), any()) } returns displayManager
+        every { DisplayManager.build(any(), any(), any()) } returns displayManager
     }
 
     @AfterEach
@@ -291,5 +294,6 @@ class DripNetworkControlTest {
             BigDecimal.TEN,
             BNBBalanceHealth.HEALTHY
         )
+        private val CLOCK = Clock.fixed(Instant.now(), ZoneId.systemDefault())
     }
 }

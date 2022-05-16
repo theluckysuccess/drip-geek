@@ -2,11 +2,12 @@ package drip.geek
 
 import com.macasaet.fernet.Key
 import io.github.cdimascio.dotenv.dotenv
+import java.time.Clock
 import mu.KLogging
 import org.apache.commons.cli.HelpFormatter
 
 class DripNetworkControlCLI() {
-    fun run(args: Array<String>) {
+    fun run(args: Array<String>, clock: Clock) {
         try {
             val commandLine = CommandLineService(args)
             when {
@@ -21,24 +22,24 @@ class DripNetworkControlCLI() {
 
                 commandLine.hasLowBalanceFindAndFundFlag() && commandLine.hasHydrationFlag() ->
                     DripWallets().wallets.let {
-                        DripNetworkControl(it).lowBNBBalanceFindAndFund()
-                        DripNetworkControl(it).hydrateWallets()
+                        DripNetworkControl(it, clock).lowBNBBalanceFindAndFund()
+                        DripNetworkControl(it, clock).hydrateWallets()
                     }
 
                 commandLine.hasHydrationFlag() ->
-                    DripNetworkControl(DripWallets().wallets).hydrateWallets()
+                    DripNetworkControl(DripWallets().wallets, clock).hydrateWallets()
 
                 commandLine.hasLowBalanceFindAndFundFlag() ->
-                    DripNetworkControl(DripWallets().wallets).lowBNBBalanceFindAndFund()
+                    DripNetworkControl(DripWallets().wallets, clock).lowBNBBalanceFindAndFund()
 
                 commandLine.hasWalletBNBBalancesFlag() ->
-                    DripNetworkControl(DripWallets().wallets).walletsBNBReport()
+                    DripNetworkControl(DripWallets().wallets, clock).walletsBNBReport()
 
                 commandLine.hasBnbSendFlag() ->
-                    DripNetworkControl(DripWallets().wallets).sendBNBToWallets(commandLine.amountToSend())
+                    DripNetworkControl(DripWallets().wallets, clock).sendBNBToWallets(commandLine.amountToSend())
 
                 commandLine.hasReportFlag() ->
-                    DripNetworkControl(DripWallets().wallets).walletsReport()
+                    DripNetworkControl(DripWallets().wallets, clock).walletsReport()
 
                 // Strongly suggest that you delete CONVERT_TO_TOKENS environment variable when you are done
                 commandLine.hasPrivateKeyToTokens() -> {

@@ -133,3 +133,45 @@ If you'd like something special I'm happy to whip it up for a reasonable fee. Op
 Also check out some projects that inspired me:
 - [Logicfool's](https://github.com/logicfool) [AutoDripBot](https://github.com/logicfool/AutoDripBot)
 - [Ymagoon's](https://github.com/ymagoon) [Drip-Autohydrator](https://github.com/ymagoon/web3/tree/main/drip-autohydrater)
+
+## Bonus: Road to DRIP 2500
+
+- Stolen from some Telegram message
+- The power of daily compounding in DRIP Faucet💦
+- 1% Daily ROI (0.95% less 5% Tax Fee)
+
+|  Drip       | Days               |    
+|-------------|--------------------|   
+|10 to 20     | 74 days💧          |
+|10 to 30     | 117 days💧         |
+|10 to 40     | 147 days💧         |
+|10 to 50     | 171 days💧         |
+|10 to 60     | 190 days💧         |
+|10 to 70     | 206 days💧         |
+|10 to 80     | 220 days💧         |
+|10 to 90     | 233 days💧         |
+|10 to 100    | 244 days💧         |
+|100 to 200   | 73 days (Day 317)💧|
+|200 to 300   | 43 days (Day 360)💧|
+|300 to 400   | 31 Days (Day 391)💧|
+|400 to 500   | 23 Days (Day 414)💧|
+|500 to 600   | 20 Days (Day 434)💧|
+|600 to 700   | 16 Days (Day 450)💧|
+|700 to 800   | 14 days (Day 464)💧|
+|800 to 900   | 12 Days (Day 476)💧|
+|900 to 1000  | 12 days (Day 488)💧|
+|1000 to 1100 | 10 days (Day 498)💧|
+|1100 to 1200 | 09 days (Day 507)💧|
+|1200 to 1300 | 08 days (Day 515)💧|
+|1300 to 1400 | 08 days (Day 523)💧|
+|1400 to 1500 | 07 days (Day 530)💧|
+|1500 to 1600 | 07 days (Day 537)💧|
+|1600 to 1700 | 07 days (Day 544)💧|
+|1700 to 1800 | 06 days (Day 550)💧|
+|1800 to 1900 | 05 days (Day 555)💧|
+|1900 to 2000 | 06 days (Day 561)💧|
+|2000 to 2500 | 23 days (Day 584)💧|
+
+Focus, Determination and Discipline🔥
+💧💧💧💧💰💰💰💰🤑
+DRIP = Time + Financial Freedom

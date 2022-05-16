@@ -2,12 +2,17 @@ package drip.geek
 
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import mu.KLogging
+
 
 class DisplayManager(
     private val dripPrice: BigDecimal,
     private val bnbPrice: BigDecimal,
+    private val clock: Clock,
 ) {
     var totalDrip: BigDecimal = BigDecimal.ZERO
     var totalDripValue: BigDecimal = BigDecimal.ZERO
@@ -22,7 +27,12 @@ class DisplayManager(
     fun startHydration(processName: String) {
         logger.info { "============================" }
         logger.info { "process=$processName | Starting process: hydrating regular wallets" }
+        displayTime(processName)
         logger.info { "process=$processName | Current price of drip is: $$dripPrice" }
+    }
+
+    fun displayTime(processName: String) {
+        logger.info { "process=$processName | Time: ${clock.toFormattedTimeString()}" }
     }
 
     fun displayWalletStats(
@@ -33,15 +43,16 @@ class DisplayManager(
         total: Int,
     ) {
         logger.info { "============================" }
-        logger.info { "process=$processName | Wallet Name:             ${dripWalletStats.name}" }
-        logger.info { "process=$processName | Count:                   $count of $total" }
-        logger.info { "process=$processName | BNB balance:             ${dripWalletStats.bnbBalance}" }
-        logger.info { "process=$processName | BNB balance health:      ${dripWalletStats.bnbBalanceHealth}" }
-        logger.info { "process=$processName | Deposit Amount:          ${dripWalletStats.depositBalance}" }
-        logger.info { "process=$processName | Deposit Value:           $${dripWalletStats.depositBalanceValue.toScale()}" }
-        logger.info { "process=$processName | Claimable amount:        ${dripWalletStats.availableBalance}" }
-        logger.info { "process=$processName | Claimed amount:          ${dripWalletStats.claimedBalance}" }
-        logger.info { "process=$processName | Balance Need to Hydrate: $balanceNeededToHydrate" }
+        logger.info { "process=$processName | Wallet Name:                ${dripWalletStats.name}" }
+        logger.info { "process=$processName | Count:                      $count of $total" }
+        logger.info { "process=$processName | BNB Balance:                ${dripWalletStats.bnbBalance}" }
+        logger.info { "process=$processName | BNB Balance health:         ${dripWalletStats.bnbBalanceHealth}" }
+        logger.info { "process=$processName | Deposit Amount:             ${dripWalletStats.depositBalance}" }
+        logger.info { "process=$processName | Deposit Value:              $${dripWalletStats.depositBalanceValue.toScale()}" }
+        logger.info { "process=$processName | Claimable Amount:           ${dripWalletStats.availableBalance}" }
+        logger.info { "process=$processName | Claimable Amount Deposit %: ${dripWalletStats.claimableAsPercent()}%" }
+        logger.info { "process=$processName | Claimed Amount:             ${dripWalletStats.claimedBalance}" }
+        logger.info { "process=$processName | Balance Need to Hydrate:    $balanceNeededToHydrate" }
         logger.info { "============================" }
     }
 
@@ -149,7 +160,13 @@ class DisplayManager(
     }
 
     companion object : KLogging() {
+        private val formatter: DateTimeFormatter = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.nnnnnn'Z'")
+            .withZone(ZoneId.systemDefault())
+
+        fun Clock.toFormattedTimeString(): String =  formatter.format(this.instant())
         fun BigDecimal.toScale(): BigDecimal = this.setScale(2, RoundingMode.HALF_DOWN)
-        fun build(dripPrice: BigDecimal, bnbPrice: BigDecimal): DisplayManager = DisplayManager(dripPrice, bnbPrice)
+        fun build(dripPrice: BigDecimal, bnbPrice: BigDecimal, clock: Clock): DisplayManager =
+            DisplayManager(dripPrice, bnbPrice, clock)
     }
 }

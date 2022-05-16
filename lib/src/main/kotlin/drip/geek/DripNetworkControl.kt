@@ -4,9 +4,10 @@ import drip.geek.DisplayManager.Companion.toScale
 import io.github.cdimascio.dotenv.dotenv
 import java.math.BigDecimal
 import java.math.MathContext
+import java.time.Clock
 import mu.KLogging
 
-class DripNetworkControl(private val wallets: List<DripWallet>) {
+class DripNetworkControl(private val wallets: List<DripWallet>, private val clock: Clock) {
 
     private fun calcTimeLeft(depositAmount: BigDecimal, availableBalance: BigDecimal): BigDecimal {
         val amount = depositAmount.multiply(BigDecimal(".01"))
@@ -57,9 +58,9 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
                 .filter { it.first.address.value != mainWalletFaucet.address.value } // The main wallet may not send to itself
                 .also { logger.info { "process=$PROCESS_NAME | Found [${it.size}] wallet(s) to fund" } }
                 .forEach { (faucet, bnbBalance) ->
-                    logger.info { "process=$PROCESS_NAME | Starting move of $amountToFund BNB from ${mainWalletFaucet.name} to ${faucet.name} [${faucet.address}]" }
+                    logger.info { "process=$PROCESS_NAME | Starting move of $amountToFund BNB from ${mainWalletFaucet.name} to ${faucet.name}" }
                     logger.info { "process=$PROCESS_NAME | ${faucet.name} [${faucet.address}] currently has $bnbBalance BNB" }
-                    logger.info { "process=$PROCESS_NAME | ${mainWalletFaucet.name} [${mainWalletFaucet.address}] currently has ${mainWalletFaucet.bnbBalance()} BNB" }
+                    logger.info { "process=$PROCESS_NAME | ${mainWalletFaucet.name} [${mainWalletFaucet.address}] currently has ${mainWalletFaucet.bnbBalance()} BNB\n" }
                     mainWalletFaucet.sendBNBFunds(to = faucet.address, amount = amountToFund)
                     logger.info { "process=$PROCESS_NAME | Successfully moved $amountToFund BNB from ${mainWalletFaucet.name} to ${faucet.name}" }
                     fundedWallets++
@@ -82,8 +83,9 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
     fun walletsReport() {
         val dripPrice = RestClient.currentDripPrice()
         val bnbPrice = RestClient.currentBNBPrice()
-        val displayManager = DisplayManager.build(dripPrice, bnbPrice)
+        val displayManager = DisplayManager.build(dripPrice, bnbPrice, clock)
 
+        displayManager.displayTime(PROCESS_NAME)
         logger.info { "process=$PROCESS_NAME | Current price of drip is: $$dripPrice" }
         val web3Client = Web3Client.init()
         val total = wallets.size
@@ -106,8 +108,9 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
     fun walletsBNBReport() {
         val dripPrice = RestClient.currentDripPrice()
         val bnbPrice = RestClient.currentBNBPrice()
-        val displayManager = DisplayManager.build(dripPrice, bnbPrice)
+        val displayManager = DisplayManager.build(dripPrice, bnbPrice, clock)
 
+        logger.info { "process=$PROCESS_NAME | Time: ${displayManager.displayTime(PROCESS_NAME)}" }
         logger.info { "process=$PROCESS_NAME | Current price of drip is: $$dripPrice" }
         logger.info { "process=$PROCESS_NAME | Current price of BNB is: $${bnbPrice.toScale()}" }
 
@@ -177,7 +180,7 @@ class DripNetworkControl(private val wallets: List<DripWallet>) {
     fun hydrateWallets(hydrationStyle: HydrationStyle = HydrationStyle.ALL) {
         val dripPrice = RestClient.currentDripPrice()
         val bnbPrice = RestClient.currentBNBPrice()
-        val displayManager = DisplayManager.build(dripPrice, bnbPrice)
+        val displayManager = DisplayManager.build(dripPrice, bnbPrice, clock)
         displayManager.startHydration(PROCESS_NAME)
         val web3Client = Web3Client.init()
         val total = wallets.size
