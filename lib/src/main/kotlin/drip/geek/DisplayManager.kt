@@ -161,7 +161,7 @@ class DisplayManager(
 
     companion object : KLogging() {
         private val formatter: DateTimeFormatter = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.nnnnnn'Z'")
+            .ofPattern("E MMM dd yyyy HH:mm:ss")
             .withZone(ZoneId.systemDefault())
 
         fun Clock.toFormattedTimeString(): String =  formatter.format(this.instant())

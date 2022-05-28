@@ -17,7 +17,8 @@ YO! You can hydrate all your wallets AT ONCE! BUT WAIT. THERE'S MORE.
 
 ## Installation
 - You need java installed on your machine
-- Run ` ./gradlew build ` to build the project   
+- Tested for Java 13, Macs and Windows 11 (You'll need to replace `/` with `\` for windows)
+- Run ` ./gradlew build ` to build the project and generate `drip-geek.jar`
 
 ## Task Cheat Sheet
 All task are run in the following form: `java -jar cli/build/libs/drip-geek.jar -flag` where `-flag` may be 1 of the following task names but not zero.
@@ -79,7 +80,7 @@ The wallet name must start with `__DRIP_`. So you can make it `__DRIP_HOT_DOG_BA
 So for example `__DRIP_HOT_DOG_BANANANA_SAUCE_A="true,true,DRIP_HOT_DOG_BANANANA_SAUCE_A,0xbe0eb53f46cd790cd13851d5eff43d12404d33e8,gAAAAABiQj5jonwif0vj2wf0joigj2wjr02fioj2goijiw4jg0jw0gjwigj0j0gw20jq20ij92h4g712g719h292hhfgufqwigviy1fbv1iebw-87wfbcviu2if2vhveoinwvoiwonbwefvqbvow8tghh3g0wvwj0jf20w0gjwerg0wjjiwfow="`
 
 #### Main Wallet
-The expected name of the environment variable that is the main wallet is `MAIN_BNB_WALLET`.  This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task and the [Send BNB](#send-bnb-to-1-or-more-wallet) task. This is the wallet you want to keep a good amount of BNB in. This program will then distribute that bnb to all your other wallets from this wallet. It should be a copy of 1 of your other wallets. So to continue our example if `sldkfjs` was also our main wallet there would be another entry in the .env file like this:
+This has nothng to do with the "Drip" version of a main wallet. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task and the [Send BNB](#send-bnb-to-1-or-more-wallet) task. This is the wallet you want to keep a good amount of BNB in. The environment variable that is the main wallet is `MAIN_BNB_WALLET`. This program will distribute that bnb to all your other wallets from this wallet. It should be a copy of 1 of your other wallets. So to continue our example if `sldkfjs` was also our main wallet there would be another entry in the .env file like this:
 For example `MAIN_BNB_WALLET="true,true,DRIP_A_WALLET,0xbe0eb53f46cd790cd13851d5eff43d12404d33e8,<some-stupidly-long-string-that-is-your-private-key-tokenized>"`
 
 It doesn't matter what you put for the second boolean the main wallet will never be fundable but I won't stop you from trying to fund it via a regular wallet environment variable if you are nutty like that
