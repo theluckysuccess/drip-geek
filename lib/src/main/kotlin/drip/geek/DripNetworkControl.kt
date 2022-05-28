@@ -110,7 +110,7 @@ class DripNetworkControl(private val wallets: List<DripWallet>, private val cloc
         val bnbPrice = RestClient.currentBNBPrice()
         val displayManager = DisplayManager.build(dripPrice, bnbPrice, clock)
 
-        logger.info { "process=$PROCESS_NAME | Time: ${displayManager.displayTime(PROCESS_NAME)}" }
+        displayManager.displayTime(PROCESS_NAME)
         logger.info { "process=$PROCESS_NAME | Current price of drip is: $$dripPrice" }
         logger.info { "process=$PROCESS_NAME | Current price of BNB is: $${bnbPrice.toScale()}" }
 
