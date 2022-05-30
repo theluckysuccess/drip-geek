@@ -17,12 +17,14 @@ class DisplayManager(
     var totalDrip: BigDecimal = BigDecimal.ZERO
     var totalDripValue: BigDecimal = BigDecimal.ZERO
     var totalBNB: BigDecimal = BigDecimal.ZERO
+    var totalBNBCost: BigDecimal = BigDecimal.ZERO
     var totalBNBValue: BigDecimal = BigDecimal.ZERO
     var totalHealthyBNBBalanceWallets: BigDecimal = BigDecimal.ZERO
     var totalLowBNBBalanceWallets: BigDecimal = BigDecimal.ZERO
     var totalNeedRefillBNBBalanceWallets: BigDecimal = BigDecimal.ZERO
     private var totalDripCompounded: BigDecimal = BigDecimal.ZERO
     private var totalDripCompoundedValue: BigDecimal = BigDecimal.ZERO
+    private var totalBNBCompoundedCostValue: BigDecimal = BigDecimal.ZERO
 
     fun startHydration(processName: String) {
         logger.info { "============================" }
@@ -58,19 +60,26 @@ class DisplayManager(
 
     fun displayHydrationInfo(
         processName: String,
-        walletStats: DripWalletStats,
+        oldAvailableBalance: BigDecimal,
+        walletName: String,
         transactionHash: String,
-        newDepositAmount: BigDecimal
+        newDepositAmount: BigDecimal,
+        preHydrationWalletBNBAmount: BigDecimal,
+        postHydrationWalletBNBAmount: BigDecimal,
     ) {
         val newDepositValue = newDepositAmount.multiply(dripPrice)
-        logger.info { "process=$processName | Hydrated ${walletStats.name}!" }
+        logger.info { "process=$processName | Hydrated $walletName!" }
         logger.info { "process=$processName | Transaction Hash: https://bscscan.com/tx/$transactionHash" }
-        logger.info { "process=$processName | Added ${walletStats.availableBalance} to deposit for ${walletStats.name}" }
-        logger.info { "process=$processName | Total Drip in faucet for ${walletStats.name} is now $newDepositAmount and is worth $${newDepositValue.toScale()}" }
+        logger.info { "process=$processName | Added $oldAvailableBalance to deposit for $walletName" }
+        logger.info { "process=$processName | Total Drip in faucet for $walletName is now $newDepositAmount and is worth $${newDepositValue.toScale()}" }
         totalDrip += newDepositAmount
         totalDripValue += newDepositValue
-        totalDripCompounded += walletStats.availableBalance
-        totalDripCompoundedValue += walletStats.availableBalance.multiply(dripPrice)
+        totalDripCompounded += oldAvailableBalance
+        totalDripCompoundedValue += oldAvailableBalance.multiply(dripPrice)
+        (preHydrationWalletBNBAmount - postHydrationWalletBNBAmount).let { costToHydrateInBNB ->
+            totalBNBCost += costToHydrateInBNB
+            totalBNBCompoundedCostValue += costToHydrateInBNB.multiply(bnbPrice)
+        }
     }
 
     fun displaySkipHydration(
@@ -87,10 +96,9 @@ class DisplayManager(
     fun displaySummary(processName: String) {
         displayLine()
         logger.info { "process=$processName | SUMMARY" }
-        logger.info { "process=$processName | Total Deposit Amount in Drip: $totalDrip" }
-        logger.info { "process=$processName | Total Deposit Value: $${totalDripValue.toScale()}" }
-        logger.info { "process=$processName | Total Compounded Amount in Drip: $totalDripCompounded" }
-        logger.info { "process=$processName | Total Compounded Value: $${totalDripCompoundedValue.toScale()}" }
+        logger.info { "process=$processName | Total Deposit Amount: \$${totalDripValue.toScale()} ($totalDrip \$DRIP)" }
+        logger.info { "process=$processName | Total Compounded Amount: \$${totalDripCompoundedValue.toScale()} ($totalDripCompounded \$DRIP)" }
+        logger.info { "process=$processName | Total Compounded Cost: \$${totalBNBCompoundedCostValue.toScale()} ($totalBNBCost \$BNB)" }
         displayLine()
     }
 
@@ -143,9 +151,16 @@ class DisplayManager(
         logger.info { "process=$processName | Total BNB balance wallets [Low Balance]:  $totalLowBNBBalanceWallets" }
         logger.info { "process=$processName | Total BNB balance wallets [Need Refill]:  $totalNeedRefillBNBBalanceWallets" }
         logger.info { "process=$processName | Current BNB fund amount:                  $fundBNBBalance" }
-        logger.info { "process=$processName | Current BNB fund amount value:            $${fundBNBBalance.multiply(bnbPrice).toScale()}" }
+        logger.info {
+            "process=$processName | Current BNB fund amount value:            $${
+                fundBNBBalance.multiply(
+                    bnbPrice
+                ).toScale()
+            }"
+        }
         logger.info { "process=$processName | BNB balance of main wallet:               $bnbBalance" }
-        logger.info { "process=$processName | BNB balance value of main wallet:         $${
+        logger.info {
+            "process=$processName | BNB balance value of main wallet:         $${
                 bnbBalance.multiply(bnbPrice).toScale()
             }"
         }
@@ -164,7 +179,7 @@ class DisplayManager(
             .ofPattern("E MMM dd yyyy HH:mm:ss")
             .withZone(ZoneId.systemDefault())
 
-        fun Clock.toFormattedTimeString(): String =  formatter.format(this.instant())
+        fun Clock.toFormattedTimeString(): String = formatter.format(this.instant())
         fun BigDecimal.toScale(): BigDecimal = this.setScale(2, RoundingMode.HALF_DOWN)
         fun build(dripPrice: BigDecimal, bnbPrice: BigDecimal, clock: Clock): DisplayManager =
             DisplayManager(dripPrice, bnbPrice, clock)

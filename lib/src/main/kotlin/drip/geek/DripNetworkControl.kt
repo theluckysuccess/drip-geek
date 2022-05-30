@@ -186,33 +186,38 @@ class DripNetworkControl(private val wallets: List<DripWallet>, private val cloc
         val total = wallets.size
         wallets.sortedBy { it.name }.forEachIndexed { index, wallet ->
             val faucet = Faucet.build(wallet, web3Client)
-            val walletStats = faucet.walletStats(dripPrice, wallet.name, MIN_BNB_BALANCE)
-            val minAvailableBalanceToHydrate = minAvailableBalanceToHydrateByDepositAmount(walletStats.depositBalance)
+            val oldWalletStats = faucet.walletStats(dripPrice, wallet.name, MIN_BNB_BALANCE)
+            val preHydrationWalletBNBAmount = oldWalletStats.bnbBalance
+            val minAvailableBalanceToHydrate =
+                minAvailableBalanceToHydrateByDepositAmount(oldWalletStats.depositBalance)
             displayManager.displayWalletStats(
                 processName = PROCESS_NAME,
-                dripWalletStats = walletStats,
+                dripWalletStats = oldWalletStats,
                 balanceNeededToHydrate = minAvailableBalanceToHydrate,
                 count = index + 1,
                 total = total
             )
-            when (hydrationStyle.canHydrate(walletStats.availableBalance, minAvailableBalanceToHydrate)) {
+            when (hydrationStyle.canHydrate(oldWalletStats.availableBalance, minAvailableBalanceToHydrate)) {
                 true -> when (val result = faucet.hydrate()) { // YAY!
                     is TransactionResponse.Error ->
                         logger.error {
-                            "process=$PROCESS_NAME | Error processing ${walletStats.name}: ${result.message} | skipping"
+                            "process=$PROCESS_NAME | Error processing ${oldWalletStats.name}: ${result.message} | skipping"
                         }
                     is TransactionResponse.Success -> displayManager.displayHydrationInfo(
-                        PROCESS_NAME,
-                        walletStats,
-                        result.transactionHash,
-                        faucet.newDepositAmount()
+                        processName = PROCESS_NAME,
+                        oldAvailableBalance = oldWalletStats.availableBalance,
+                        walletName = oldWalletStats.name,
+                        transactionHash = result.transactionHash,
+                        newDepositAmount = faucet.newDepositAmount(),
+                        preHydrationWalletBNBAmount = preHydrationWalletBNBAmount,
+                        postHydrationWalletBNBAmount = faucet.bnbBalance()
                     )
                 }
                 else -> displayManager.displaySkipHydration(
                     PROCESS_NAME,
-                    walletStats,
+                    oldWalletStats,
                     minAvailableBalanceToHydrate,
-                    calcTimeLeft(walletStats.depositBalance, walletStats.availableBalance)
+                    calcTimeLeft(oldWalletStats.depositBalance, oldWalletStats.availableBalance)
                 )
             }
         }

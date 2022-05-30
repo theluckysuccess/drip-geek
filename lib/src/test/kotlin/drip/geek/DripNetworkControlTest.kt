@@ -71,6 +71,7 @@ class DripNetworkControlTest {
         every { Faucet.build(any(), any()) } returns faucet
         every { displayManager.displayWalletReport(any(), any(), any(), any(), any()) } returns Unit
         every { displayManager.displayWalletReportSummary(any()) } returns Unit
+        every { displayManager.displayTime(TEST_PROCESS_NAME) } returns Unit
 
         testWallets.forEachIndexed { num, wallet ->
             val walletName = "Wallet $num"
@@ -90,7 +91,6 @@ class DripNetworkControlTest {
 
     @Test
     fun `wallets BNB report test`() {
-        val processName = "drip-network-control"
         every { RestClient.currentDripPrice() } returns DRIP_PRICE
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
@@ -128,14 +128,15 @@ class DripNetworkControlTest {
         every { faucet.bnbBalance() } returns MAIN_WALLET_BNB_BALANCE
         every { faucet.walletStats(any(), mainWalletName, MIN_BNB_BALANCE) } returns DRIP_WALLET_STATS.copy(name = mainWalletName)
         every { Faucet.build(DripWallets.MAIN_BNB_WALLET, any()) } returns faucet
+        every { displayManager.displayTime(TEST_PROCESS_NAME) } returns Unit
 
         dripNetworkControl.walletsBNBReport()
 
 
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 0", walletBalance1, BNBBalanceHealth.NEEDS_REFILL, 1, 3) }
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 1", walletBalance2, BNBBalanceHealth.LOW_BALANCE, 2, 3) }
-        verify { displayManager.displayWalletBNBReport(processName, "Wallet 2", walletBalance3, BNBBalanceHealth.HEALTHY, 3, 3) }
-        verify { displayManager.displayWalletBNBReportSummary(processName, FUND_BNB_BALANCE, walletBalance1) }
+        verify { displayManager.displayWalletBNBReport(TEST_PROCESS_NAME, "Wallet 0", walletBalance1, BNBBalanceHealth.NEEDS_REFILL, 1, 3) }
+        verify { displayManager.displayWalletBNBReport(TEST_PROCESS_NAME, "Wallet 1", walletBalance2, BNBBalanceHealth.LOW_BALANCE, 2, 3) }
+        verify { displayManager.displayWalletBNBReport(TEST_PROCESS_NAME, "Wallet 2", walletBalance3, BNBBalanceHealth.HEALTHY, 3, 3) }
+        verify { displayManager.displayWalletBNBReportSummary(TEST_PROCESS_NAME, FUND_BNB_BALANCE, walletBalance1) }
         verify(exactly = 2) { Web3Client.init() }
         verify(exactly = 2) { web3j.shutdown() }
         verify(exactly = 2) { web3Client.close() }
@@ -228,14 +229,13 @@ class DripNetworkControlTest {
 
     @Test
     fun `hydrate wallets`() {
-        val processName = "drip-network-control"
         val txHash = "lets-pretend-this-is-a-sexy-transaction-hash"
         every { RestClient.currentDripPrice() } returns DRIP_PRICE
         every { RestClient.currentBNBPrice() } returns BNB_PRICE
         every { Faucet.build(any(), any()) } returns faucet
         every { displayManager.startHydration(any()) } returns Unit
         every { displayManager.displayWalletStats(any(), any(), any(), any(), any()) } returns Unit
-        every { displayManager.displayHydrationInfo(any(), any(), any(), any()) } returns Unit
+        every { displayManager.displayHydrationInfo(any(), any(), any(), any(), any(), any(), any()) } returns Unit
         every { displayManager.displaySummary(any()) } returns Unit
 
         testWallets.forEachIndexed() { num, wallet ->
@@ -248,7 +248,9 @@ class DripNetworkControlTest {
             every { wallet.credentials } returns WALLET_CREDENTIALS
             every { walletFaucet.name } returns walletName
             every { walletFaucet.address } returns WALLET_ADDRESSES[num]
-            every { walletFaucet.bnbBalance() } returns MAIN_WALLET_BNB_BALANCE
+            every { walletFaucet.bnbBalance() } returnsMany listOf(
+                DRIP_WALLET_STATS.bnbBalance - BNB_COST_TO_HYDRATE
+            )
             every { walletFaucet.walletStats(any(), walletName, MIN_BNB_BALANCE) } returns walletStats
             every { walletFaucet.hydrate() } returns TransactionResponse.Success(transactionHash = txHash)
             every { walletFaucet.newDepositAmount() } returns walletStats.depositBalance + FUND_BNB_BALANCE
@@ -257,24 +259,30 @@ class DripNetworkControlTest {
 
         dripNetworkControl.hydrateWallets()
 
-        verify { displayManager.startHydration(processName) }
-        testWallets.forEachIndexed { num, wallet ->
+        verify { displayManager.startHydration(TEST_PROCESS_NAME) }
+        testWallets.forEachIndexed { num, _ ->
             verify {
                 displayManager.displayHydrationInfo(
-                    processName = processName,
-                    walletStats = DRIP_WALLET_STATS.copy(name = "Wallet $num"),
+                    processName = TEST_PROCESS_NAME,
+                    oldAvailableBalance = DRIP_WALLET_STATS.availableBalance,
+                    walletName = "Wallet $num",
                     transactionHash = txHash,
-                    newDepositAmount = DRIP_WALLET_STATS.depositBalance + FUND_BNB_BALANCE
+                    newDepositAmount = DRIP_WALLET_STATS.depositBalance + FUND_BNB_BALANCE,
+                    preHydrationWalletBNBAmount = DRIP_WALLET_STATS.bnbBalance,
+                    postHydrationWalletBNBAmount = DRIP_WALLET_STATS.bnbBalance - BNB_COST_TO_HYDRATE
                 )
             }
         }
-        verify { displayManager.displaySummary(processName) }
+        verify { displayManager.displaySummary(TEST_PROCESS_NAME) }
     }
 
     companion object {
+
+        private val TEST_PROCESS_NAME = "drip-network-control"
         private val DRIP_PRICE = BigDecimal.valueOf(10000)
         private val BNB_PRICE = BigDecimal.valueOf(420)
         private val MAIN_WALLET_BNB_BALANCE = BigDecimal.valueOf(10000)
+        private val BNB_COST_TO_HYDRATE = BigDecimal.valueOf(2)
         private val BALANCE_BELOW_MIN_BALANCE = BigDecimal.valueOf(1)
         private val FUND_BNB_BALANCE = BigDecimal.valueOf(10)
         private val MIN_BNB_BALANCE = BigDecimal.valueOf(5)
