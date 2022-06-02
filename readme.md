@@ -25,17 +25,21 @@ All task are run in the following form: `java -jar cli/build/libs/drip-geek.jar 
 Only "Find, Fund and Hydrate" may have more than 1 flag
 
 
-| Task Name                  | Flag                                         | Description                                                                                                                           |
-|----------------------------|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| Hydrate                    | -hydrate_wallets                             | Hydrate all included wallets based on settings in .env file                                                                                    |
-| Find and Fund              | -find_and_fund_wallets                        | Finds all fundable wallets with a balance at or below  $MIN_BNB_BALANCE and sends them the amount of BNB defined in $FUND_BNB_BALANCE |
-| Find, Fund and Hydrate     | -find_and_fund_wallets <br> -hydrate_wallets  | Runs both tasks at once                                                                                                               |
-| Wallet BNB Balance Check   | -bnb_balances_wallets                        | Print BNB balances for all included wallets                                                                                          |
-| Send BNB to Wallets        | -send_bnb_to_wallets <amount to send>        | Send BNB from a main wallet at $MAIN_BNB_WALLET to 1 or more other included wallets based on settings in .env file. Pass "amount to send" as a parameter to the flag |
-| Wallet Report              | -summarize_wallets                           | Print wallet reports and wallets summary for all included wallets                                                                                              |
-| Generate Private Key       | -generate_key                                | Generates a random secret key                                                                                                         |
-| Generate Tokens            | -generate_tokens                             | Takes a comma separated list of strings at $CONVERT_TO_TOKENS and tokenizes them and then lists them in console                       |
-
+| Task Name                                          | Flag                                         | Description                                                                                                                                                        |
+|----------------------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Hydrate                                            | -hydrate_wallets                             | Hydrate all included wallets based on settings in .env file                                                                                                         |
+| Find and Fund                                      | -find_and_fund_wallets                        | Finds all fundable wallets with a balance at or below  $MIN_BNB_BALANCE and sends them the amount of BNB defined in $FUND_BNB_BALANCE                               |
+| Find, Fund and Hydrate                             | -find_and_fund_wallets <br> -hydrate_wallets  | Runs both tasks at once                                                                                                                                            |
+| Wallet BNB Balance Check                           | -bnb_balances_wallets                        | Print BNB balances for all included wallets                                                                                                                        |
+| Send BNB to Wallets                                | -send_bnb_to_wallets <amount to send>        | Send BNB from a main wallet at $MAIN_BNB_WALLET to 1 or more other included wallets based on settings in .env file. Pass "amount to send" as a parameter to the flag |
+| Wallet Report                                      | -summarize_wallets                           | Print wallet reports and wallets summary for all included wallets                                                                                                  |
+| Generate Private Key                               | -generate_key                                | Generates a random secret key                                                                                                                                      |
+| Generate Tokens                                    | -generate_tokens                             | Takes a comma separated list of strings at $CONVERT_TO_TOKENS and tokenizes them and then lists them in console                                                    |
+| Claim to Drip **                                   | -claim_drip                                  | Claims $Drip in wallets available balances                                                                                                                          |
+| Claim to Drip, swap to BNB **                      | -claim_drip_to_bnb                           | Claims $Drip in wallets available balances, swaps the claimed $Drip to BNB                                                                                          |
+| Claim to Drip, swap to BNB, Send to Main Wallet ** | -claim_to_bnb_send_to_main_wallet            | Claims $Drip in wallets available balances, swaps the claimed $Drip to BNB then sends to main wallet                                                                |
+| Claim to Drip, swap to USDC, Send to Main Wallet **| -claim_to_usdc_send_to_main_wallet           | Claims $Drip in wallets available balances, swaps the claimed $Drip to BNB then sends to main wallet                                                                |
+** = coming soon!
 Configuration for this project is done with a `.env` file. For more info check out the [The .env file](#the-env-file) section
 
 ## Disclaimer and Truth
