@@ -96,6 +96,8 @@ class DisplayManager(
     fun displaySummary(processName: String) {
         displayLine()
         logger.info { "process=$processName | SUMMARY" }
+        displayTime(processName)
+        logger.info { "process=$processName | Current price of drip is: $$dripPrice" }
         logger.info { "process=$processName | Total Deposit Amount: \$${totalDripValue.toScale()} ($totalDrip \$DRIP)" }
         logger.info { "process=$processName | Total Compounded Amount: \$${totalDripCompoundedValue.toScale()} ($totalDripCompounded \$DRIP)" }
         logger.info { "process=$processName | Total Compounded Cost: \$${totalBNBCompoundedCostValue.toScale()} ($totalBNBCost \$BNB)" }
