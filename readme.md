@@ -97,10 +97,10 @@ The expected name of the environment variable secret key of the program is `SECR
 Take the generated secret key and set it in the `.env` file like this `SECRET_KEY=<generated key>`. Also think about clearing your command line after. 
 
 #### Min BNB Balance
-The expected name of the environment variable that is the bnb balance that triggers a money reload to is `MIN_BNB_BALANCE`. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task. Setting this value to zero will cause all wallet to be funded by the Find and Fund Low Balances task.
+The expected name of the environment variable that is the bnb balance that triggers a money reload to is `MIN_BNB_BALANCE`. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task. I recommend setting this to `0.0030` because after trial and error it seems like less than this amount will cause your transactions to fail due to insufficient funds. You can also just set this value to zero to cause all wallet to be funded by the Find and Fund Low Balances task.
 
 #### Fund Balance
-The expected name of the environment variable that is the amount of bnb to automatically send to wallets is `FUND_BNB_BALANCE`. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task
+The expected name of the environment variable that is the amount of bnb to automatically send to wallets is `FUND_BNB_BALANCE`. This is used by the [Find and Fund Low Balances](#find-and-fund-low-balance-wallets) task. I recommend setting this to `0.008` which will get me about 4-6 days of compounding. Experiment with what makes sense for you. 
 
 Here is an [example](.example.env) `.env` file. All the details were made up except the wallet addresses are the largest bnb wallet addresses at this time because I thought that was cool. 
 
